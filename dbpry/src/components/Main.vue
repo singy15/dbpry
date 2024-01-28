@@ -47,6 +47,20 @@ foo(1234);
         this.outToLog(msg);
       };
 
+      iframe.contentWindow.querySync = function(sql) {
+        const request = new XMLHttpRequest();
+        const endpoint = 'https://localhost:7016';
+        const param = (new URLSearchParams({query: sql})).toString();
+        request.open("GET", `${endpoint}/Database?${param}`, false);
+        request.send(null);
+        
+        if (request.status === 200) {
+          return JSON.parse(request.responseText);
+        } else {
+          throw new Error("Error on execute query");
+        }
+      };
+
       iframe.contentWindow.eval(`
         window.console.__log = console.log;
         window.console.log = (arg) => { console.__log(arg); consoleListener(arg); }
