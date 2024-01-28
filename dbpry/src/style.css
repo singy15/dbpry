@@ -81,13 +81,13 @@ button:focus-visible {
 */
 
 body {
-  background-color: #333;
+  background-color: #FEFEFE;
 }
 
 html {
   font-family: system;
   font-size: 14px;
-  color: #EEE;
+  color: #333;
 }
 
 .button-container {
@@ -99,14 +99,23 @@ html {
 }
 
 .button1 {
-  font-size: 0.8rem;
-  background-color: #555;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  background-color: #DDD;
   text-align: center;
   padding: 5px 10px;
   border-radius: 5px;
 
   &:hover {
-    background-color: #888;
+    background-color: #AAA;
   }
+}
+
+.p-3 {
+  padding: 3px;
+}
+
+.bg-forbidden {
+  background-color: #EEE;
 }
 

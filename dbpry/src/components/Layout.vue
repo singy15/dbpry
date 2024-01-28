@@ -141,7 +141,7 @@ export default {
     </div>
 
     <div 
-      :style="{left:`0px`, right:`0px`, bottom:`0px`, height:`${south}px`, borderTop:`solid 1px #CCC`, boxSizing:`border-box`, position:`absolute`, overflow:`hidden`}"
+      :style="{left:`0px`, right:`0px`, bottom:`0px`, height:`${south}px`, borderTop:`solid 1px #AAA`, boxSizing:`border-box`, position:`absolute`, overflow:`hidden`}"
       v-if="!disableSouth" >
       <div :style="'width:100%;height:100%;'+styleSouth" :class="classSouth">
         <slot name="south"></slot>
@@ -157,7 +157,7 @@ export default {
     </div>
 
     <div :style="'left:0px; top:' + north + 'px; bottom:' + south + 'px; width:' + west + 'px;'
-        + 'border-right:solid 1px #CCC; box-sizing: border-box;position: absolute; overflow:hidden;'"
+        + 'border-right:solid 1px #AAA; box-sizing: border-box;position: absolute; overflow:hidden;'"
       v-if="!disableWest">
       <div :style="'width:100%;height:100%;'+styleWest" :class="classWest">
         <slot name="west"></slot>
@@ -173,7 +173,7 @@ export default {
     </div>
 
     <div :style="'right:0px; top:' + north + 'px; bottom:' + south + 'px; width:' + east + 'px;'
-        + 'border-left:solid 1px #CCC; box-sizing: border-box;position: absolute; overflow:hidden;'"
+        + 'border-left:solid 1px #AAA; box-sizing: border-box;position: absolute; overflow:hidden;'"
       v-if="!disableEast" >
       <div :style="'width:100%;height:100%;'+styleEast" :class="classEast">
         <slot name="east"></slot>
@@ -199,9 +199,9 @@ export default {
 </template>
 
 <style scoped>
-  .border { border: solid 1px #CCC; }
+  .border { border: solid 1px #AAA; }
 
-  .border-white { border-color: #CCC; }
+  .border-white { border-color: #AAA; }
 
   .border-top-only { /*border-top: none !important;*/ border-bottom: none !important; border-left: none !important; border-right: none !important; }
   .border-left-only { border-top: none !important; border-bottom: none !important; /*border-left: none !important;*/ border-right: none !important; }

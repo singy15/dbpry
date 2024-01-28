@@ -12,6 +12,7 @@ import 'ace-builds/src-noconflict/worker-css';
 // import 'ace-builds/src-noconflict/mode-sql';
 import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/theme-github';
+import 'ace-builds/src-noconflict/theme-textmate';
 // import 'ace-builds/src-noconflict/mode-lisp';
 // import 'ace-builds/src-noconflict/mode-html';
 

@@ -15,7 +15,6 @@ export default {
 
 foo(1234);
 
-console.log(1+2);
 `,
       logText: "",
     }
@@ -28,7 +27,12 @@ console.log(1+2);
       if(this.logText !== "") {
         this.logText = this.logText + "\n";
       }
-      this.logText = this.logText + prefix + JSON.stringify(msg);
+
+      let isObject = (value) => {
+        return value !== null && typeof value === 'object'
+      };
+
+      this.logText = this.logText + prefix + ((isObject(msg))? JSON.stringify(msg) : msg);
     },
     resetJavaScriptContext() {
       let target = this.$refs.sandboxes.querySelector('iframe[name="default"]');
@@ -75,9 +79,14 @@ console.log(1+2);
 
       // this.$refs.sandboxes.contentWindow.eval(text);
       let context = this.$refs.sandboxes.querySelector('iframe[name="default"]');
-      let result = context.contentWindow.eval(text);
-      this.outToLog(result, "> ");
-      console.log(result);
+      try {
+        let result = context.contentWindow.eval(text);
+        this.outToLog(result, "> ");
+        console.log(result);
+      } catch(err) {
+        this.outToLog(err.toString(), "ERROR: ");
+        console.error(err);
+      }
     }
   },
   mounted() {
@@ -91,15 +100,19 @@ console.log(1+2);
   </div>
   <Layout layout-id="layout-outer"
     border-width="4"
-    size-north="48" size-west="150" size-south="24" size-east="100"
-    disable-east="true"
+    size-north="48" size-west="24" size-south="24" size-east="100"
+    class-north="p-3" class-south="p-3 bg-forbidden" class-east="p-3" class-west="p-3 bg-forbidden" class-center="p-3"
+    disable-east="true" disable-west="true"
     resizable-north="false" resizable-south="false" >
     <template v-slot:north>
-      <span>dbpry</span>
+      <img src="../assets/dbpry-icon.svg" class="logo" alt="dbpry logo" height="50" style="margin-top:-2px; transform:rotate(0deg);" />
+      <span style="position:absolute; top:20px; left:20px;">
+        <span style="color:#FFF">db</span><span style="margin-left:2px">pry</span>
+      </span>
     </template>
 
     <template v-slot:west>
-      tools and components
+      <!-- tools and components -->
     </template>
 
     <template v-slot:center>
@@ -107,38 +120,43 @@ console.log(1+2);
       <Layout layout-id="layout-inner"
         border-width="4"
         size-north="24"
-        disable-east="true" disable-west="true" disable-south="true"
+        disable-east="true" disable-west="true" disable-south="true" disable-north="false"
+        class-north="p-3 bg-forbidden" class-south="p-3" class-east="p-3" class-west="p-3" class-center="p-3"
         resizable-north="false" >
         <template v-slot:north>
-          tabbar
+          <!-- tabbar -->
         </template>
 
         <template v-slot:center>
 
+          <!-- tab page 1 -->
           <Layout layout-id="layout-content1"
             border-width="4"
             size-east="300"
-            disable-west="true" disable-north="true" disable-south="true" >
+            class-north="p-3" class-south="p-3" class-east="p-3 bg-forbidden" class-west="p-3" class-center="p-3"
+            disable-west="true" disable-north="true" disable-south="true"
+            disable-east="true">
 
             <template v-slot:center>
               <Layout layout-id="layout-content1-inner1"
                 border-width="4"
-                size-north="30" size-south="100"
+                size-north="32" size-south="150"
+                class-south="p-3" class-east="p-3" class-west="p-3" class-center="p-3"
                 disable-west="true" disable-east="true" >
                 <template v-slot:north>
                   <div class="button-container">
-                    <button class="button1" @click="resetJavaScriptContext()">Reset</button>
                     <button class="button1" @click="evaluateJavaScript($refs.editor.editor.getSelectedText())">
-                      Evaluate</button>
+                      Evaluate<span style="font-size:0.7em;">&nbsp;(Ctrl+Enter)</span></button>
+                    <button class="button1" @click="resetJavaScriptContext()">Reset</button>
                   </div>
                 </template>
                 <template v-slot:center>
-                  <Editor ref="editor" editorId="editor1" :content="src" theme="monokai" lang="javascript"
+                  <Editor ref="editor" editorId="editor1" :content="src" theme="textmate" lang="javascript"
                     @keydown.ctrl.enter="evaluateJavaScript($refs.editor.editor.getSelectedText())">
                   </Editor>
                 </template>
                 <template v-slot:south>
-                  <Editor editorId="editor2" :content="logText" theme="monokai" lang="text">
+                  <Editor editorId="editor2" :content="logText" theme="textmate" lang="text">
                   </Editor>
                 </template>
               </Layout>
@@ -176,7 +194,7 @@ console.log(1+2);
     </template>
 
     <template v-slot:south>
-      status
+      
     </template>
   </Layout>
 </template>
