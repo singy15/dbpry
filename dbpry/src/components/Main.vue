@@ -2,6 +2,27 @@
 import Layout from './Layout.vue';
 import Editor from './Editor.vue';
 
+let exampleCode = `// Write JavaScript code here.
+// Select code and press Ctrl+Enter to evaluate.
+
+function example1() {
+  return querySync(\`select * from sampletable\`);
+}
+
+function example2(name) {
+  console.log("hello, " + name);
+}
+
+// Press "Reset" to reset current context.
+`;
+
+let storageKeyCode = "/dbpry/code";
+
+function storageExists(key) {
+  let val = localStorage.getItem(key);
+  return val != null;
+}
+
 export default {
   components: {
     Layout: Layout,
@@ -9,30 +30,50 @@ export default {
   },
   data() {
     return {
-      src: `function foo(text) {
-  console.log(text);
-}
-
-foo(1234);
-
-`,
-      logText: "",
+      src: (storageExists(storageKeyCode))? localStorage.getItem(storageKeyCode) : exampleCode,
+      logEntries: [],
+      timeoutSaveLocalStorage: null,
+      watches: {}
+    }
+  },
+  watch: {
+    logEntries() {
+      this.$nextTick(() => { this.$refs.out.scrollIntoView({ block: "end", inline: "nearest" }); });
     }
   },
   methods: {
     msg(text) {
       console.log(text);
     },
-    outToLog(msg, prefix = "") {
-      if(this.logText !== "") {
-        this.logText = this.logText + "\n";
+    saveCodeToLocalStorage(code) {
+      if(this.timeoutSaveLocalStorage) {
+        clearTimeout(this.timeoutSaveLocalStorage);
       }
 
+      this.timeoutSaveLocalStorage = setTimeout(() => {
+        let c = code;
+        localStorage.setItem(storageKeyCode, c);
+        this.timeoutSaveLocalStorage = null;
+      }, 1000);
+    },
+    writeLog(msg, prefix = "") {
       let isObject = (value) => {
         return value !== null && typeof value === 'object'
       };
 
-      this.logText = this.logText + prefix + ((isObject(msg))? JSON.stringify(msg) : msg);
+      this.logEntries.push(
+        `<span>${prefix + ((isObject(msg))? JSON.stringify(msg) : msg)}</span>`);
+    },
+    writeError(msg, prefix = "") {
+      let isObject = (value) => {
+        return value !== null && typeof value === 'object'
+      };
+
+      this.logEntries.push(
+        `<span style="color:#F00;">${prefix + ((isObject(msg))? JSON.stringify(msg) : msg)}</span>`);
+    },
+    registerWatch(val, key) {
+      this.watches[key] = val;
     },
     resetJavaScriptContext() {
       let target = this.$refs.sandboxes.querySelector('iframe[name="default"]');
@@ -44,7 +85,7 @@ foo(1234);
       this.$refs.sandboxes.appendChild(iframe);
 
       iframe.contentWindow.consoleListener = (msg) => {
-        this.outToLog(msg);
+        this.writeLog(msg);
       };
 
       iframe.contentWindow.querySync = function(sql) {
@@ -59,6 +100,18 @@ foo(1234);
         } else {
           throw new Error("Error on execute query");
         }
+      };
+
+      iframe.contentWindow.addWatch = (val, key) => {
+        if(key === "" || key == null || key === undefined) {
+          throw new Error("key not specified!");
+        }
+
+        this.watches[key] = val;
+      };
+
+      iframe.contentWindow.removeWatch = (key) => {
+        delete this.watches[key];
       };
 
       iframe.contentWindow.eval(`
@@ -95,10 +148,10 @@ foo(1234);
       let context = this.$refs.sandboxes.querySelector('iframe[name="default"]');
       try {
         let result = context.contentWindow.eval(text);
-        this.outToLog(result, "> ");
+        this.writeLog(result, "> ");
         console.log(result);
       } catch(err) {
-        this.outToLog(err.toString(), "ERROR: ");
+        this.writeError(err.toString(), "ERROR: ");
         console.error(err);
       }
     }
@@ -147,16 +200,33 @@ foo(1234);
           <Layout layout-id="layout-content1"
             border-width="4"
             size-east="300"
-            class-north="p-3" class-south="p-3" class-east="p-3 bg-forbidden" class-west="p-3" class-center="p-3"
+            class-north="p-3" class-south="p-3" class-east="p-5" class-west="p-3" class-center="p-3"
+            style-east="overflow:auto"
             disable-west="true" disable-north="true" disable-south="true"
-            disable-east="true">
+            >
+
+            <template v-slot:east>
+              <div v-for="k1 in Object.keys(watches)" :key="k1">
+                <span>{{ k1 }}</span><button class="button1 small" style="margin:2px" @click="delete watches[k1]">X</button>
+                <table v-if="watches[k1].length > 0" class="result">
+                  <tr>
+                    <th v-for="k in Object.keys(watches[k1][0])">{{ k }}</th>
+                  </tr>
+                  <tr v-for="row in watches[k1]">
+                    <td v-for="k in Object.keys(row)">{{ row[k] }}</td>
+                  </tr>
+                </table>
+                <br />
+              </div>
+            </template>
 
             <template v-slot:center>
               <Layout layout-id="layout-content1-inner1"
                 border-width="4"
                 size-north="32" size-south="150"
                 class-south="p-3" class-east="p-3" class-west="p-3" class-center="p-3"
-                disable-west="true" disable-east="true" >
+                disable-west="true" disable-east="true" 
+                style-south="overflow:auto; font-size:0.9em; background-color:#FAFAFA;">
                 <template v-slot:north>
                   <div class="button-container">
                     <button class="button1" @click="evaluateJavaScript($refs.editor.editor.getSelectedText())">
@@ -166,12 +236,20 @@ foo(1234);
                 </template>
                 <template v-slot:center>
                   <Editor ref="editor" editorId="editor1" :content="src" theme="textmate" lang="javascript"
-                    @keydown.ctrl.enter="evaluateJavaScript($refs.editor.editor.getSelectedText())">
+                    @keydown.ctrl.enter="evaluateJavaScript($refs.editor.editor.getSelectedText())"
+                    @change-content="saveCodeToLocalStorage">
                   </Editor>
                 </template>
                 <template v-slot:south>
-                  <Editor editorId="editor2" :content="logText" theme="textmate" lang="text">
+                  <button class="button1" @click="logEntries = []">Clear</button>
+                  <div style="white-space:pre;" ref="out">
+                    <div v-for="log in logEntries" :key="log" v-html="log" style="padding:5px; background-color:#FFF; margin:3px;">
+                    </div>
+                  </div>
+                  <!--
+                  <Editor editorId="editor2" :content="logEntries" theme="textmate" lang="text">
                   </Editor>
+                  -->
                 </template>
               </Layout>
             </template>

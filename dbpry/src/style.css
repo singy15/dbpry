@@ -109,13 +109,39 @@ html {
   &:hover {
     background-color: #AAA;
   }
+
+  &.small {
+    font-size:0.70rem;
+    padding: 3px 7px;
+  }
 }
+
 
 .p-3 {
   padding: 3px;
 }
 
+.p-5 {
+  padding: 5px;
+}
+
 .bg-forbidden {
   background-color: #EEE;
+}
+
+table.result {
+  border: solid 1px #CCC;
+  font-size: 0.9em;
+
+  & td {
+    border: solid 1px #CCC;
+    padding: 3px;
+  }
+
+  & th {
+    border: solid 1px #CCC;
+    padding: 3px;
+    background-color: #EEE;
+  }
 }
 
